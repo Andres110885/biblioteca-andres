@@ -128,6 +128,14 @@ details > *:not(summary) { margin-top: 8px; }
 .rating-nums { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-bottom:14px; }
 .rating-num { border:1px solid #d6c498; background:#fdf6e3; color:#3a3024; font-family:inherit; font-size:16px; font-weight:700; padding:12px 0; border-radius:10px; cursor:pointer; }
 .rating-num:hover { background:#b88c3a; color:#fff; border-color:#b88c3a; }
+.search-input { width:100%; padding:12px 14px; border:1px solid #d6c498; border-radius:10px; font-family:inherit; font-size:15px; background:#fff; color:#2a241d; margin-bottom:14px; box-sizing:border-box; }
+.search-input:focus { outline:none; border-color:#b88c3a; box-shadow:0 0 0 3px #fbeac8; }
+.search-results .rec { padding:11px 0; border-top:1px solid #efe6d3; }
+.search-results .rec:first-child { border-top:none; }
+.search-results .rec-title { font-size:15px; }
+.search-results .rec-hook { font-size:13px; }
+.search-results .actions .btn { padding:5px 9px; font-size:12px; }
+.search-count { color:#6b5c47; font-size:13px; margin:6px 0 10px; font-style:italic; }
 </style>
 </head>
 <body>
@@ -168,6 +176,9 @@ details > *:not(summary) { margin-top: 8px; }
       </div>
     </details>
   </div>
+
+  <input type="search" class="search-input" id="books-search" placeholder="🔍 Buscar libro por título o autor..." oninput="onBooksSearchInput()">
+  <div id="books-search-results" class="search-results" style="display:none;"></div>
 
   <p class="legend">Páginas: <span class="pages pages-s">corto</span> <span class="pages">normal</span> <span class="pages pages-l">largo (500-700)</span> <span class="pages pages-xl">tochaco (&gt;700)</span></p>
 
@@ -239,6 +250,8 @@ details > *:not(summary) { margin-top: 8px; }
         <div class="form-row"><button class="btn" onclick="addSeriesManual()">Añadir a pendientes</button></div>
       </details>
     </div>
+    <input type="search" class="search-input" id="series-search" placeholder="🔍 Buscar serie por título..." oninput="onSeriesSearchInput()">
+    <div id="series-search-results" class="search-results" style="display:none;"></div>
     <div class="bar-row">
       <button class="pending-bar" onclick="toggleSeriesPending()">📌 Pendientes (<span id="series-pending-count">0</span>)</button>
       <button class="pending-bar discard-bar" onclick="toggleSeriesDiscarded()">🗑 Descartados (<span id="series-discarded-count">0</span>)</button>
@@ -281,6 +294,8 @@ details > *:not(summary) { margin-top: 8px; }
       <div class="form-row"><button class="btn" onclick="addPeliManual()">Añadir a pendientes</button></div>
     </details>
   </div>
+  <input type="search" class="search-input" id="pelis-search" placeholder="🔍 Buscar película por título..." oninput="onPelisSearchInput()">
+  <div id="pelis-search-results" class="search-results" style="display:none;"></div>
   <div class="bar-row">
     <button class="pending-bar" onclick="togglePelisPending()">📌 Pendientes (<span id="pelis-pending-count">0</span>)</button>
     <button class="pending-bar discard-bar" onclick="togglePelisDiscarded()">🗑 Descartados (<span id="pelis-discarded-count">0</span>)</button>
@@ -1624,7 +1639,8 @@ function closePanel() {
 }
 
 function markBook(bookId, list) {
-  const book = activeRecs.find(function(b) { return b.id === bookId; });
+  let book = activeRecs.find(function(b) { return b.id === bookId; });
+  if (!book) { for (const cat in POOLS) { const f = (POOLS[cat]||[]).find(function(b){ return b.id === bookId; }); if (f) { book = f; break; } } }
   if (!book) return;
   const entry = { id: book.id, title: book.title, author: book.author, addedAt: new Date().toISOString() };
   if (PAGES[book.id]) entry.pages = PAGES[book.id];
@@ -1785,6 +1801,9 @@ function initSeries() {
 }
 function switchSeriesGroup(g) {
   seriesGroup = g; seriesActiveCat = null; seriesActiveRecs = []; seriesShowPending = false; seriesShowDiscarded = false;
+  seriesSearchQuery = ''; var _si = document.getElementById('series-search'); if (_si) _si.value = '';
+  var _sr = document.getElementById('series-search-results'); if (_sr) { _sr.innerHTML = ''; _sr.style.display = 'none'; }
+  document.getElementById('series-cards').style.display = '';
   document.getElementById('series-hint').style.display = 'none';
   document.getElementById('series-content').style.display = 'block';
   document.getElementById('series-pending-wrap').style.display = 'none';
@@ -2069,6 +2088,57 @@ function importAll() {
     toast('Importado. Recargando...');
     setTimeout(function(){ location.reload(); }, 800);
   } catch(e) { toast('Error: ' + e.message); }
+}
+
+
+var booksSearchQuery = '';
+var seriesSearchQuery = '';
+var pelisSearchQuery = '';
+function normSearch(s) {
+  s = String(s).toLowerCase().normalize('NFD');
+  let out = '';
+  for (let i = 0; i < s.length; i++) { const code = s.charCodeAt(i); if (code >= 0x0300 && code <= 0x036f) continue; out += s[i]; }
+  return out;
+}
+function onBooksSearchInput() { booksSearchQuery = document.getElementById('books-search').value.trim(); renderBooksSearch(); }
+function renderBooksSearch() {
+  const grid = document.getElementById('cards'); const panel = document.getElementById('panel'); const results = document.getElementById('books-search-results');
+  if (!booksSearchQuery) { results.innerHTML = ''; results.style.display = 'none'; if (grid) grid.style.display = ''; return; }
+  if (grid) grid.style.display = 'none'; if (panel) panel.style.display = 'none';
+  results.style.display = 'block';
+  const qn = normSearch(booksSearchQuery); const seenIds = new Set(); const matches = [];
+  for (const cat in POOLS) { for (const b of (POOLS[cat] || [])) { if (seenIds.has(b.id)) continue; const t = normSearch(b.title); const a = normSearch(b.author || ''); if (t.indexOf(qn) >= 0 || a.indexOf(qn) >= 0) { seenIds.add(b.id); matches.push(b); } } }
+  if (matches.length === 0) { results.innerHTML = '<div class="search-count">Sin coincidencias.</div>'; return; }
+  results.innerHTML = '<div class="search-count">' + matches.length + ' coincidencia' + (matches.length===1?'':'s') + '</div>' + matches.map(function(b){
+    return `<div class="rec"><p class="rec-title">${escapeHtml(b.title)}${pagesBadge(b)}</p><p class="rec-author">${escapeHtml(b.author || '')}</p><p class="rec-hook">${escapeHtml(b.hook || '')}</p><div class="actions"><button class="btn btn-read" onclick="markBook('${b.id}','read')">✓ Ya lo he leído</button><button class="btn btn-pending" onclick="markBook('${b.id}','pending')">📌 Lo voy a leer</button><button class="btn btn-discard" onclick="markBook('${b.id}','discarded')">✗ No me interesa</button></div></div>`;
+  }).join('');
+}
+function onSeriesSearchInput() { seriesSearchQuery = document.getElementById('series-search').value.trim(); renderSeriesSearch(); }
+function renderSeriesSearch() {
+  if (!seriesGroup) return;
+  const cards = document.getElementById('series-cards'); const panel = document.getElementById('series-panel'); const results = document.getElementById('series-search-results');
+  if (!seriesSearchQuery) { results.innerHTML = ''; results.style.display = 'none'; if (cards) cards.style.display = ''; return; }
+  if (cards) cards.style.display = 'none'; if (panel) panel.style.display = 'none';
+  results.style.display = 'block';
+  const qn = normSearch(seriesSearchQuery); const pools = SERIES[seriesGroup].pools; const seenIds = new Set(); const matches = [];
+  for (const cat in pools) { for (const it of (pools[cat] || [])) { if (seenIds.has(it.id)) continue; if (normSearch(it.title).indexOf(qn) >= 0) { seenIds.add(it.id); matches.push(it); } } }
+  if (matches.length === 0) { results.innerHTML = '<div class="search-count">Sin coincidencias.</div>'; return; }
+  results.innerHTML = '<div class="search-count">' + matches.length + ' coincidencia' + (matches.length===1?'':'s') + '</div>' + matches.map(function(it){
+    return `<div class="rec"><p class="rec-title">${escapeHtml(it.title)}</p><p class="rec-meta">${escapeHtml(seriesMeta(it))}</p><p class="rec-hook">${escapeHtml(it.hook || '')}</p><div class="actions"><button class="btn btn-pending" onclick="markSeries('${it.id}','pending')">📌 Pendiente</button><button class="btn btn-read" onclick="markSeries('${it.id}','seen')">✓ Vista</button><button class="btn btn-discard" onclick="markSeries('${it.id}','discarded')">✗ Descartar</button></div></div>`;
+  }).join('');
+}
+function onPelisSearchInput() { pelisSearchQuery = document.getElementById('pelis-search').value.trim(); renderPelisSearch(); }
+function renderPelisSearch() {
+  const cards = document.getElementById('pelis-cards'); const panel = document.getElementById('pelis-panel'); const results = document.getElementById('pelis-search-results');
+  if (!pelisSearchQuery) { results.innerHTML = ''; results.style.display = 'none'; if (cards) cards.style.display = ''; return; }
+  if (cards) cards.style.display = 'none'; if (panel) panel.style.display = 'none';
+  results.style.display = 'block';
+  const qn = normSearch(pelisSearchQuery); const seenIds = new Set(); const matches = [];
+  for (const cat in PELIS.pools) { for (const it of (PELIS.pools[cat] || [])) { if (seenIds.has(it.id)) continue; if (normSearch(it.title).indexOf(qn) >= 0) { seenIds.add(it.id); matches.push(it); } } }
+  if (matches.length === 0) { results.innerHTML = '<div class="search-count">Sin coincidencias.</div>'; return; }
+  results.innerHTML = '<div class="search-count">' + matches.length + ' coincidencia' + (matches.length===1?'':'s') + '</div>' + matches.map(function(it){
+    return `<div class="rec"><p class="rec-title">${escapeHtml(it.title)}</p><p class="rec-meta">${escapeHtml(pelisMeta(it))}</p><p class="rec-hook">${escapeHtml(it.hook || '')}</p><div class="actions"><button class="btn btn-pending" onclick="markPeli('${it.id}','pending')">📌 Pendiente</button><button class="btn btn-read" onclick="markPeli('${it.id}','seen')">✓ Vista</button><button class="btn btn-discard" onclick="markPeli('${it.id}','discarded')">✗ Descartar</button></div></div>`;
+  }).join('');
 }
 
 renderLibcards();
