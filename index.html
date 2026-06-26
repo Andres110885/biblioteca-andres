@@ -136,6 +136,10 @@ details > *:not(summary) { margin-top: 8px; }
 .search-results .rec-hook { font-size:13px; }
 .search-results .actions .btn { padding:5px 9px; font-size:12px; }
 .search-count { color:#6b5c47; font-size:13px; margin:6px 0 10px; font-style:italic; }
+.search-section-h { font-size:13px; color:#8b6f3a; margin:18px 0 8px; text-transform:uppercase; letter-spacing:0.5px; }
+.search-section-h:first-of-type { margin-top:6px; }
+.status-pill { display:inline-block; font-size:10.5px; font-weight:600; padding:2px 7px; border-radius:999px; background:#f1ead7; color:#6b5c47; border:1px solid #e8dec9; margin-left:6px; vertical-align:middle; }
+.status-pill.grp-pill { background:#fdf6e3; color:#8b6f3a; border-color:#e6cf95; }
 </style>
 </head>
 <body>
@@ -177,7 +181,7 @@ details > *:not(summary) { margin-top: 8px; }
     </details>
   </div>
 
-  <input type="search" class="search-input" id="books-search" placeholder="🔍 Buscar libro por título o autor..." oninput="onBooksSearchInput()">
+  <input type="search" class="search-input" id="books-search" placeholder="🔍 Buscar en todo: libros, series, pelis..." oninput="onBooksSearchInput()">
   <div id="books-search-results" class="search-results" style="display:none;"></div>
 
   <p class="legend">Páginas: <span class="pages pages-s">corto</span> <span class="pages">normal</span> <span class="pages pages-l">largo (500-700)</span> <span class="pages pages-xl">tochaco (&gt;700)</span></p>
@@ -837,7 +841,8 @@ const POOLS = {
     { id:'morgan-altered-carbon', title:'Carbono modificado', author:'Richard Morgan', hook:'Conciencia transferible entre cuerpos en un futuro neo-noir. Netflix lo serializó.' },
     { id:'haldeman-guerra-eterna', title:'La guerra interminable', author:'Joe Haldeman', hook:'Un soldado en una guerra cósmica regresa siglos después de cada misión por la dilatación temporal. Hugo y Nebula.' },
     { id:'shusterman-siega', title:'Siega (Scythe)', author:'Neal Shusterman', hook:'En un mundo perfecto donde nadie muere, los Cosechadores deciden quién se va. Distopía juvenil que engancha.' },
-    { id:'glukhovsky-metro', title:'Metro 2033', author:'Dmitry Glujovski', hook:'Tras un holocausto nuclear, los últimos rusos sobreviven en los túneles del metro de Moscú. Sobrecogedora.' }
+    { id:'glukhovsky-metro', title:'Metro 2033', author:'Dmitry Glujovski', hook:'Tras un holocausto nuclear, los últimos rusos sobreviven en los túneles del metro de Moscú. Sobrecogedora.' },
+    { id:'zamiatin-nosotros', title:'Nosotros (Zamiatin)', author:'Yevgueni Zamiatin', hook:'Distopía rusa de 1924 sobre un Estado totalitario donde todo es transparente. Inspiró a Orwell y Huxley.' }
   ],
   mind: [
     { id:'yalom-nietzsche', title:'El día que Nietzsche lloró', author:'Irvin Yalom', hook:'Nietzsche y el Dr. Breuer en la Viena de finales del XIX, antes de Freud. Ficción filosófica perfecta.' },
@@ -1526,7 +1531,8 @@ const PAGES = {
   'gogol-capote': 60,
   'shusterman-siega': 480,
   'glukhovsky-metro': 540,
-  'bazterrica-cadaver': 220
+  'bazterrica-cadaver': 220,
+  'zamiatin-nosotros': 240
 };
 
 const STATE_KEY = 'andres_books_state_v1';
@@ -1859,8 +1865,8 @@ function closeSeriesPanel() {
   document.getElementById('series-panel').style.display = 'none';
   seriesActiveCat = null; renderSeriesCats();
 }
-function markSeries(id, action) {
-  const g = seriesGroup; const st = seriesState[g];
+function markSeries(id, action, group) {
+  const g = group || seriesGroup; if (!g) return; const st = seriesState[g];
   let item = seriesActiveRecs.find(function(x){ return x.id === id; }) || st.pending.find(function(x){ return x.id === id; }) || findSeriesItem(g, id);
   const title = item ? item.title : id;
   if (action === 'seen') { showRating(title, function(rating){ commitSeriesSeen(g, id, item, title, rating); }); return; }
@@ -2030,6 +2036,8 @@ function recoverSeries(id) {
   saveSeries(); toast('↩ Recuperada'); refreshSeries(seriesGroup);
 }
 function refreshSeries(g) {
+  if (typeof booksSearchQuery !== 'undefined' && booksSearchQuery) renderBooksSearch();
+  if (!seriesGroup || seriesGroup !== g) return;
   renderSeriesCats(); renderSeriesPendingCount(); renderSeriesDiscardedCount();
   if (seriesShowPending) renderSeriesPending();
   if (seriesShowDiscarded) renderSeriesDiscarded();
@@ -2061,6 +2069,7 @@ function recoverPeli(id) {
   savePelis(); toast('↩ Recuperada'); refreshPelis();
 }
 function refreshPelis() {
+  if (typeof booksSearchQuery !== 'undefined' && booksSearchQuery) renderBooksSearch();
   renderPelisCats(); renderPelisPendingCount(); renderPelisDiscardedCount();
   if (pelisShowPending) renderPelisPending();
   if (pelisShowDiscarded) renderPelisDiscarded();
@@ -2118,12 +2127,49 @@ function renderBooksSearch() {
   if (!booksSearchQuery) { results.innerHTML = ''; results.style.display = 'none'; if (grid) grid.style.display = ''; return; }
   if (grid) grid.style.display = 'none'; if (panel) panel.style.display = 'none';
   results.style.display = 'block';
-  const qn = normSearch(booksSearchQuery); const seenIds = new Set(); const matches = [];
-  for (const cat in POOLS) { for (const b of (POOLS[cat] || [])) { if (seenIds.has(b.id)) continue; const t = normSearch(b.title); const a = normSearch(b.author || ''); if (t.indexOf(qn) >= 0 || a.indexOf(qn) >= 0) { seenIds.add(b.id); matches.push(b); } } }
-  if (matches.length === 0) { results.innerHTML = '<div class="search-count">Sin coincidencias.</div>'; return; }
-  results.innerHTML = '<div class="search-count">' + matches.length + ' coincidencia' + (matches.length===1?'':'s') + '</div>' + matches.map(function(b){
-    return `<div class="rec"><p class="rec-title">${escapeHtml(b.title)}${pagesBadge(b)}</p><p class="rec-author">${escapeHtml(b.author || '')}</p><p class="rec-hook">${escapeHtml(b.hook || '')}</p><div class="actions"><button class="btn btn-read" onclick="markBook('${b.id}','read')">✓ Ya lo he leído</button><button class="btn btn-pending" onclick="markBook('${b.id}','pending')">📌 Lo voy a leer</button><button class="btn btn-discard" onclick="markBook('${b.id}','discarded')">✗ No me interesa</button></div></div>`;
-  }).join('');
+  const qn = normSearch(booksSearchQuery);
+
+  // Libros (catálogo + estado)
+  const bookIds = new Set(); const bookHits = [];
+  for (const cat in POOLS) { for (const b of (POOLS[cat] || [])) { if (bookIds.has(b.id)) continue; if (normSearch(b.title).indexOf(qn) >= 0 || normSearch(b.author || '').indexOf(qn) >= 0) { bookIds.add(b.id); bookHits.push(b); } } }
+  for (const k of ['read','pending','discarded']) { for (const b of (state[k] || [])) { if (bookIds.has(b.id)) continue; if (normSearch(b.title || '').indexOf(qn) >= 0 || normSearch(b.author || '').indexOf(qn) >= 0) { bookIds.add(b.id); bookHits.push(Object.assign({_status:k}, b)); } } }
+
+  // Series (catálogo + estado, todos los grupos)
+  const serIds = new Set(); const serHits = [];
+  for (const grp in SERIES) { for (const cat in SERIES[grp].pools) { for (const it of (SERIES[grp].pools[cat] || [])) { if (serIds.has(it.id)) continue; if (normSearch(it.title).indexOf(qn) >= 0) { serIds.add(it.id); serHits.push(Object.assign({_grp:grp}, it)); } } } }
+  for (const grp in seriesState) { if (!seriesState[grp]) continue; for (const k of ['pending','seen','discarded']) { for (const x of (seriesState[grp][k] || [])) { const item = (typeof x === 'string') ? (findSeriesItem(grp, x) || {id:x, title:x}) : x; if (serIds.has(item.id)) continue; if (normSearch(item.title || '').indexOf(qn) >= 0) { serIds.add(item.id); serHits.push(Object.assign({_grp:grp, _status:k}, item)); } } } }
+
+  // Pelis (catálogo + estado)
+  const peliIds = new Set(); const peliHits = [];
+  for (const cat in PELIS.pools) { for (const it of (PELIS.pools[cat] || [])) { if (peliIds.has(it.id)) continue; if (normSearch(it.title).indexOf(qn) >= 0) { peliIds.add(it.id); peliHits.push(it); } } }
+  for (const k of ['pending','seen','discarded']) { for (const x of (pelisState[k] || [])) { const item = (typeof x === 'string') ? (findPeliItem(x) || {id:x, title:x}) : x; if (peliIds.has(item.id)) continue; if (normSearch(item.title || '').indexOf(qn) >= 0) { peliIds.add(item.id); peliHits.push(Object.assign({_status:k}, item)); } } }
+
+  const total = bookHits.length + serHits.length + peliHits.length;
+  if (total === 0) { results.innerHTML = '<div class="search-count">Sin coincidencias.</div>'; return; }
+  let html = '<div class="search-count">' + total + ' coincidencia' + (total===1?'':'s') + '</div>';
+  if (bookHits.length) { html += '<h3 class="search-section-h">📖 Libros (' + bookHits.length + ')</h3>' + bookHits.map(renderBookHit).join(''); }
+  if (serHits.length) { html += '<h3 class="search-section-h">📺 Series (' + serHits.length + ')</h3>' + serHits.map(renderSerHit).join(''); }
+  if (peliHits.length) { html += '<h3 class="search-section-h">🎬 Pelis (' + peliHits.length + ')</h3>' + peliHits.map(renderPeliHit).join(''); }
+  results.innerHTML = html;
+}
+function bookStatusOf(id) { if (state.read.some(b=>b.id===id)) return 'read'; if (state.pending.some(b=>b.id===id)) return 'pending'; if (state.discarded.some(b=>b.id===id)) return 'discarded'; return null; }
+function renderBookHit(b) {
+  const st = b._status || bookStatusOf(b.id);
+  const pill = st==='read'?'<span class="status-pill">✓ leído</span>':st==='pending'?'<span class="status-pill">📌 pendiente</span>':st==='discarded'?'<span class="status-pill">🗑 descartado</span>':'';
+  return `<div class="rec"><p class="rec-title">${escapeHtml(b.title)}${pagesBadge(b)} ${pill}</p><p class="rec-author">${escapeHtml(b.author || '')}</p>${b.hook?`<p class="rec-hook">${escapeHtml(b.hook)}</p>`:''}<div class="actions"><button class="btn btn-read" onclick="markBook('${b.id}','read')">✓ Leído</button><button class="btn btn-pending" onclick="markBook('${b.id}','pending')">📌 Pendiente</button><button class="btn btn-discard" onclick="markBook('${b.id}','discarded')">✗ Descartar</button></div></div>`;
+}
+function serStatusOf(grp, id) { const s = seriesState[grp]; if (!s) return null; if (s.pending.some(x=>(typeof x==='string'?x:x.id)===id)) return 'pending'; if (s.seen.some(x=>(typeof x==='string'?x:x.id)===id)) return 'seen'; if (s.discarded.some(x=>(typeof x==='string'?x:x.id)===id)) return 'discarded'; return null; }
+function renderSerHit(it) {
+  const grp = it._grp; const st = it._status || serStatusOf(grp, it.id);
+  const grpL = grp==='ninos'?'Niños':grp==='andres'?'Andrés':grp==='premios'?'Premios':'Docs';
+  const pill = st==='pending'?'<span class="status-pill">📌 pendiente</span>':st==='seen'?'<span class="status-pill">✓ vista</span>':st==='discarded'?'<span class="status-pill">🗑 descartada</span>':'';
+  return `<div class="rec"><p class="rec-title">${escapeHtml(it.title)} <span class="status-pill grp-pill">${grpL}</span> ${pill}</p><p class="rec-meta">${escapeHtml(seriesMeta(it))}</p>${it.hook?`<p class="rec-hook">${escapeHtml(it.hook)}</p>`:''}<div class="actions"><button class="btn btn-pending" onclick="markSeries('${it.id}','pending','${grp}')">📌 Pendiente</button><button class="btn btn-read" onclick="markSeries('${it.id}','seen','${grp}')">✓ Vista</button><button class="btn btn-discard" onclick="markSeries('${it.id}','discarded','${grp}')">✗ Descartar</button></div></div>`;
+}
+function peliStatusOf(id) { if (pelisState.pending.some(x=>(typeof x==='string'?x:x.id)===id)) return 'pending'; if (pelisState.seen.some(x=>(typeof x==='string'?x:x.id)===id)) return 'seen'; if (pelisState.discarded.some(x=>(typeof x==='string'?x:x.id)===id)) return 'discarded'; return null; }
+function renderPeliHit(it) {
+  const st = it._status || peliStatusOf(it.id);
+  const pill = st==='pending'?'<span class="status-pill">📌 pendiente</span>':st==='seen'?'<span class="status-pill">✓ vista</span>':st==='discarded'?'<span class="status-pill">🗑 descartada</span>':'';
+  return `<div class="rec"><p class="rec-title">${escapeHtml(it.title)} ${pill}</p><p class="rec-meta">${escapeHtml(pelisMeta(it))}</p>${it.hook?`<p class="rec-hook">${escapeHtml(it.hook)}</p>`:''}<div class="actions"><button class="btn btn-pending" onclick="markPeli('${it.id}','pending')">📌 Pendiente</button><button class="btn btn-read" onclick="markPeli('${it.id}','seen')">✓ Vista</button><button class="btn btn-discard" onclick="markPeli('${it.id}','discarded')">✗ Descartar</button></div></div>`;
 }
 function onSeriesSearchInput() { seriesSearchQuery = document.getElementById('series-search').value.trim(); renderSeriesSearch(); }
 function renderSeriesSearch() {
