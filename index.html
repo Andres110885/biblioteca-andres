@@ -354,7 +354,15 @@ const CATEGORIES = [
   { id: 'mind', emoji: '🧠', title: 'Mente humana narrada', desc: 'Psicología y filosofía dentro de una historia.' },
   { id: 'ideas', emoji: '⚙️', title: 'Historia de las ideas', desc: 'Ciencia y pensamiento como aventura.' },
   { id: 'conflicts', emoji: '🕊️', title: 'Conflictos contemporáneos', desc: 'IRA, ETA, Israel-Palestina, Balcanes, África.' },
-  { id: 'awards', emoji: '🏆', title: 'Premiados recientes', desc: 'Pulitzer, Booker, Nobel, Goncourt, Planeta...' }
+  { id: 'awards', emoji: '🏆', title: 'Premiados recientes', desc: 'Pulitzer, Booker, Nobel, Goncourt, Planeta...' },
+  { id: 'form-filo', emoji: '🎓', title: 'Filosofía', desc: 'Formación · Pensar la vida.' },
+  { id: 'form-psico', emoji: '🎓', title: 'Psicología', desc: 'Formación · La mente en novela.' },
+  { id: 'form-hist', emoji: '🎓', title: 'Historia', desc: 'Formación · Novelas para entender el pasado.' },
+  { id: 'form-ia', emoji: '🎓', title: 'Inteligencia artificial', desc: 'Formación · IA, entre ficción y ensayo.' },
+  { id: 'form-econ', emoji: '🎓', title: 'Economía del comportamiento', desc: 'Formación · Cómo decidimos.' },
+  { id: 'form-neuro', emoji: '🎓', title: 'Neurociencia', desc: 'Formación · El cerebro por dentro.' },
+  { id: 'form-cien', emoji: '🎓', title: 'Historia de la ciencia', desc: 'Formación · Cómo conocimos lo que sabemos.' },
+  { id: 'form-sist', emoji: '🎓', title: 'Teoría de sistemas', desc: 'Formación · Pensar la complejidad.' }
 ];
 const SEED_READ = [
   { id:'han-crisis-narracion', title:'La crisis de la narración', author:'Byung-Chul Han' },
@@ -1000,6 +1008,62 @@ const POOLS = {
     { id:'cusk-outline', title:'A contraluz (Trilogía Outline)', author:'Rachel Cusk', hook:'Una escritora divorciada que solo registra lo que otros le cuentan. Una de las trilogías más aclamadas de la década.' },
     { id:'rooney-gente-normal', title:'Gente normal', author:'Sally Rooney', hook:'Dos jóvenes irlandeses se encuentran y se desencuentran en el instituto y la universidad. Costa Book 2018.' },
     { id:'mcbride-ciega', title:'Una chica es algo a medio formar', author:'Eimear McBride', hook:'Una infancia y juventud rota en Irlanda. Prosa fragmentada vanguardista. Goldsmith 2013, Bailey 2014.' }
+  ],
+  'form-filo': [
+    { id:'form-filo-extranjero', title:'El extranjero', author:'Albert Camus', hook:'Un hombre indiferente mata a un árabe en la playa. Existencialismo en una novela corta y demoledora.' },
+    { id:'form-filo-zaratustra', title:'Así habló Zaratustra', author:'Friedrich Nietzsche', hook:'El profeta baja de la montaña para enseñar al hombre el sentido de la tierra. Filosofía hecha poema.' },
+    { id:'form-filo-zen', title:'Zen y el arte del mantenimiento de la motocicleta', author:'Robert M. Pirsig', hook:'Un padre y su hijo cruzan EE. UU. en moto mientras él reflexiona sobre la calidad y el sentido. Filosofía vital.' },
+    { id:'form-filo-alquimista', title:'El alquimista', author:'Paulo Coelho', hook:'Un pastor sigue su leyenda personal a través del desierto. Fábula sobre seguir los sueños.' },
+    { id:'form-filo-pi', title:'La vida de Pi', author:'Yann Martel', hook:'Un chico atrapado en un bote con un tigre de Bengala. Sobre la fe, las historias y por qué creemos.' }
+  ],
+  'form-psico': [
+    { id:'form-psico-tinieblas', title:'El corazón de las tinieblas', author:'Joseph Conrad', hook:'Marlow navega por el Congo en busca del enigmático Kurtz. Sobre la oscuridad que llevamos dentro.' },
+    { id:'form-psico-moscas', title:'El señor de las moscas', author:'William Golding', hook:'Niños naufragados en una isla descubren a su animal interior. Clásico sobre el orden y el salvajismo.' },
+    { id:'form-psico-cuco', title:'Alguien voló sobre el nido del cuco', author:'Ken Kesey', hook:'Un rebelde en un psiquiátrico desafía a la enfermera Ratched. Sobre la cordura y el poder.' },
+    { id:'form-psico-naranja', title:'La naranja mecánica', author:'Anthony Burgess', hook:'Alex y sus drugos siembran ultraviolencia... y luego le reprograman. Sobre el libre albedrío.' },
+    { id:'form-psico-abandones', title:'Nunca me abandones', author:'Kazuo Ishiguro', hook:'Tres jóvenes en un internado inglés con un destino terrible. Sutil, melancólica e inolvidable.' }
+  ],
+  'form-hist': [
+    { id:'form-hist-rosa', title:'El nombre de la rosa', author:'Umberto Eco', hook:'Un fraile investiga muertes en una abadía medieval. Misterio, semiótica y manuscritos prohibidos.' },
+    { id:'form-hist-frente', title:'Sin novedad en el frente', author:'Erich Maria Remarque', hook:'Soldados alemanes en las trincheras de la Gran Guerra. Antibélico clásico.' },
+    { id:'form-hist-uvas', title:'Las uvas de la ira', author:'John Steinbeck', hook:'Una familia de Oklahoma huye a California en plena Gran Depresión. Pulitzer y Nobel.' },
+    { id:'form-hist-desmorona', title:'Todo se desmorona', author:'Chinua Achebe', hook:'Un guerrero igbo ve cómo el colonialismo arrasa su mundo. La gran novela africana del siglo XX.' },
+    { id:'form-hist-zhivago', title:'Doctor Zhivago', author:'Borís Pasternak', hook:'Un médico-poeta cruza la Revolución y la Guerra Civil rusas. Nobel, prohibida en la URSS.' }
+  ],
+  'form-ia': [
+    { id:'form-ia-klara', title:'Klara y el sol', author:'Kazuo Ishiguro', hook:'Una amiga artificial observa a los humanos desde la tienda. Sobre la consciencia y el amor.' },
+    { id:'form-ia-yorobot', title:'Yo, robot', author:'Isaac Asimov', hook:'Nueve relatos clásicos sobre las tres leyes de la robótica. El origen de la sci-fi de robots.' },
+    { id:'form-ia-era', title:'La era de la inteligencia artificial', author:'Jerry Kaplan', hook:'Qué es la IA realmente y cómo va a cambiar el trabajo y la sociedad. Accesible y claro.' },
+    { id:'form-ia-maestro', title:'El algoritmo del maestro', author:'Pedro Domingos', hook:'Las cinco tribus del machine learning y el santo grial: el algoritmo definitivo.' },
+    { id:'form-ia-super', title:'Superinteligencia', author:'Nick Bostrom', hook:'Qué pasaría si la IA superase la inteligencia humana. Filosofía y advertencias sobre el futuro.' }
+  ],
+  'form-econ': [
+    { id:'form-econ-rapido', title:'Pensar rápido, pensar despacio', author:'Daniel Kahneman', hook:'Los dos sistemas con los que pensamos y los sesgos que nos arrastran. Premio Nobel.' },
+    { id:'form-econ-nudge', title:'Nudge. El pequeño empujón', author:'Richard Thaler y Cass Sunstein', hook:'Cómo diseñar pequeños empujones para que decidamos mejor. Thaler ganó el Nobel por esto.' },
+    { id:'form-econ-predictible', title:'Predictiblemente irracional', author:'Dan Ariely', hook:'Las trampas sistemáticas en las que caemos al decidir, explicadas con experimentos.' },
+    { id:'form-econ-micro', title:'Micromotivaciones', author:'Dan Ariely y James Surowiecki', hook:'Pequeñas decisiones, grandes consecuencias. Cómo se construye el comportamiento colectivo.' },
+    { id:'form-econ-critico', title:'Pensamiento crítico e irracionalidad', author:'Dan Ariely', hook:'Cómo razonamos mal sin darnos cuenta y qué hacer al respecto.' }
+  ],
+  'form-neuro': [
+    { id:'form-neuro-kandel', title:'En busca de la memoria', author:'Eric Kandel', hook:'El Nobel que descubrió cómo se forma la memoria, contado en clave autobiográfica.' },
+    { id:'form-neuro-sacks', title:'El hombre que confundió a su mujer con un sombrero', author:'Oliver Sacks', hook:'Casos clínicos extraordinarios de pacientes con cerebros que funcionan distinto. Inolvidable.' },
+    { id:'form-neuro-llinas', title:'El cerebro y el mito del yo', author:'Rodolfo Llinás', hook:'El neurocientífico que explica de dónde viene la sensación de ser yo.' },
+    { id:'form-neuro-eagleman', title:'La vida secreta del cerebro', author:'David Eagleman', hook:'Casi todo lo que haces lo decide tu cerebro sin pedirte permiso. Divertido y revelador.' },
+    { id:'form-neuro-fuster', title:'Cerebro y libertad', author:'Joaquín Fuster', hook:'¿Tenemos libre albedrío o el cerebro decide antes? El gran debate neurocientífico.' }
+  ],
+  'form-cien': [
+    { id:'form-cien-hawking', title:'Breve historia del tiempo', author:'Stephen Hawking', hook:'Big Bang, agujeros negros y la flecha del tiempo. El divulgador científico más leído del XX.' },
+    { id:'form-cien-cosmos', title:'Cosmos', author:'Carl Sagan', hook:'Un viaje por el universo, sus orígenes y su belleza. Sagan en su mejor versión.' },
+    { id:'form-cien-armas', title:'Armas, gérmenes y acero', author:'Jared Diamond', hook:'¿Por qué unas civilizaciones dominaron a otras? Geografía y biología detrás de la historia. Pulitzer.' },
+    { id:'form-cien-sapiens', title:'Sapiens', author:'Yuval Noah Harari', hook:'Cómo una especie de simio sin garras conquistó el planeta. Best seller global.' },
+    { id:'form-cien-kuhn', title:'La estructura de las revoluciones científicas', author:'Thomas Kuhn', hook:'Cómo cambia realmente la ciencia: por cambios de paradigma, no por suma. Influyentísimo.' }
+  ],
+  'form-sist': [
+    { id:'form-sist-berta', title:'Introducción a la teoría general de sistemas', author:'Ludwig von Bertalanffy', hook:'El padre fundador explica por qué el todo es más que la suma de las partes. El libro clave.' },
+    { id:'form-sist-senge', title:'La Quinta Disciplina', author:'Peter M. Senge', hook:'Las cinco disciplinas que convierten una empresa en una organización que aprende.' },
+    { id:'form-sist-meadows', title:'Pensamientos en sistemas', author:'Donella H. Meadows', hook:'Cómo pensar en bucles, retroalimentaciones y comportamientos emergentes. Introducción brillante.' },
+    { id:'form-sist-caos', title:'Caos', author:'James Gleick', hook:'Cosas simples pueden generar comportamientos increíblemente complejos. El efecto mariposa.' },
+    { id:'form-sist-capra', title:'La red de la vida', author:'Fritjof Capra', hook:'Una visión sistémica de los seres vivos y los ecosistemas. Sostenibilidad desde la complejidad.' }
   ]
 };
 
@@ -1532,7 +1596,47 @@ const PAGES = {
   'shusterman-siega': 480,
   'glukhovsky-metro': 540,
   'bazterrica-cadaver': 220,
-  'zamiatin-nosotros': 240
+  'zamiatin-nosotros': 240,
+  'form-filo-extranjero': 130,
+  'form-filo-zaratustra': 320,
+  'form-filo-zen': 480,
+  'form-filo-alquimista': 200,
+  'form-filo-pi': 360,
+  'form-psico-tinieblas': 130,
+  'form-psico-moscas': 250,
+  'form-psico-cuco': 380,
+  'form-psico-naranja': 220,
+  'form-psico-abandones': 320,
+  'form-hist-rosa': 600,
+  'form-hist-frente': 250,
+  'form-hist-uvas': 600,
+  'form-hist-desmorona': 220,
+  'form-hist-zhivago': 700,
+  'form-ia-klara': 320,
+  'form-ia-yorobot': 280,
+  'form-ia-era': 270,
+  'form-ia-maestro': 380,
+  'form-ia-super': 480,
+  'form-econ-rapido': 670,
+  'form-econ-nudge': 350,
+  'form-econ-predictible': 320,
+  'form-econ-micro': 280,
+  'form-econ-critico': 280,
+  'form-neuro-kandel': 540,
+  'form-neuro-sacks': 320,
+  'form-neuro-llinas': 200,
+  'form-neuro-eagleman': 320,
+  'form-neuro-fuster': 380,
+  'form-cien-hawking': 250,
+  'form-cien-cosmos': 380,
+  'form-cien-armas': 600,
+  'form-cien-sapiens': 500,
+  'form-cien-kuhn': 300,
+  'form-sist-berta': 350,
+  'form-sist-senge': 520,
+  'form-sist-meadows': 250,
+  'form-sist-caos': 380,
+  'form-sist-capra': 400
 };
 
 const STATE_KEY = 'andres_books_state_v1';
