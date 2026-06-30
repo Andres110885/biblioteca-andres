@@ -355,6 +355,7 @@ const CATEGORIES = [
   { id: 'ideas', emoji: '⚙️', title: 'Historia de las ideas', desc: 'Ciencia y pensamiento como aventura.' },
   { id: 'conflicts', emoji: '🕊️', title: 'Conflictos contemporáneos', desc: 'IRA, ETA, Israel-Palestina, Balcanes, África.' },
   { id: 'awards', emoji: '🏆', title: 'Premiados recientes', desc: 'Pulitzer, Booker, Nobel, Goncourt, Planeta...' },
+  { id: 'form', emoji: '🎓', title: 'Formación', desc: 'Filosofía, psicología, IA, neurociencia, sistemas y más.' },
   { id: 'form-filo', emoji: '🎓', title: 'Filosofía', desc: 'Formación · Pensar la vida.' },
   { id: 'form-psico', emoji: '🎓', title: 'Psicología', desc: 'Formación · La mente en novela.' },
   { id: 'form-hist', emoji: '🎓', title: 'Historia', desc: 'Formación · Novelas para entender el pasado.' },
@@ -1711,10 +1712,19 @@ function closeLibList() {
 
 function renderCards() {
   const known = allKnownIds();
-  document.getElementById('cards').innerHTML = CATEGORIES.map(function(cat) {
-    const available = (POOLS[cat.id] || []).filter(function(b) { return !known.has(b.id); }).length;
+  const cats = CATEGORIES.filter(function(c){ return !c.id.startsWith('form-'); });
+  document.getElementById('cards').innerHTML = cats.map(function(cat) {
+    let available, countLabel;
+    if (cat.id === 'form') {
+      available = 0;
+      CATEGORIES.forEach(function(s){ if (s.id.startsWith('form-')) available += (POOLS[s.id] || []).filter(function(b){ return !known.has(b.id); }).length; });
+      countLabel = '8 subgrupos · ' + available + ' libros';
+    } else {
+      available = (POOLS[cat.id] || []).filter(function(b) { return !known.has(b.id); }).length;
+      countLabel = available + ' recomendaciones nuevas';
+    }
     const isActive = activeCategory === cat.id ? 'active' : '';
-    return `<button class="card ${isActive}" onclick="openCategory('${cat.id}')"><div class="card-emoji">${cat.emoji}</div><div class="card-title">${cat.title}</div><div class="card-desc">${cat.desc}</div><div class="card-count">${available} recomendaciones nuevas</div></button>`;
+    return `<button class="card ${isActive}" onclick="openCategory('${cat.id}')"><div class="card-emoji">${cat.emoji}</div><div class="card-title">${cat.title}</div><div class="card-desc">${cat.desc}</div><div class="card-count">${countLabel}</div></button>`;
   }).join('');
 }
 function openCategory(catId) {
@@ -1726,6 +1736,8 @@ function openCategory(catId) {
 function refreshRecs() {
   if (!activeCategory) return;
   const cat = CATEGORIES.find(function(c) { return c.id === activeCategory; });
+  if (!cat) return;
+  if (activeCategory === 'form') { activeRecs = []; renderPanel(cat); return; }
   const known = allKnownIds();
   const candidates = (POOLS[activeCategory] || []).filter(function(b) { return !known.has(b.id); });
   activeRecs = shuffle(candidates).slice(0, 6);
@@ -1744,8 +1756,22 @@ function renderPanel(cat) {
   const panel = document.getElementById('panel');
   panel.style.display = 'block';
   document.getElementById('panel-title').textContent = cat.emoji + ' ' + cat.title;
-  document.getElementById('panel-sub').textContent = cat.desc;
+  const subEl = document.getElementById('panel-sub');
+  if (cat.id.startsWith('form-')) {
+    subEl.innerHTML = `<a onclick="openCategory('form')" style="cursor:pointer; color:#8b6f3a; font-weight:600;">← Volver a Formación</a> · ${escapeHtml(cat.desc)}`;
+  } else {
+    subEl.textContent = cat.desc;
+  }
   const recsEl = document.getElementById('recs');
+  if (cat.id === 'form') {
+    const subs = CATEGORIES.filter(function(c){ return c.id.startsWith('form-'); });
+    const known = allKnownIds();
+    recsEl.innerHTML = '<div class="grid" style="margin-bottom:0;">' + subs.map(function(s){
+      const avail = (POOLS[s.id] || []).filter(function(b){ return !known.has(b.id); }).length;
+      return `<button class="card" onclick="openCategory('${s.id}')"><div class="card-emoji">${s.emoji}</div><div class="card-title">${escapeHtml(s.title)}</div><div class="card-desc">${escapeHtml(s.desc)}</div><div class="card-count">${avail} libros</div></button>`;
+    }).join('') + '</div>';
+    return;
+  }
   if (activeRecs.length === 0) {
     recsEl.innerHTML = '<div class="empty">No quedan más recomendaciones nuevas en esta categoría. Pídeme que amplíe el catálogo cuando quieras.</div>';
     return;
